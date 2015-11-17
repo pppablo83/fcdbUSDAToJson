@@ -4,7 +4,9 @@
   "description": "Simple parser from USDA nutrient database in ASCII files to JSON",
   "main": "main.js",
   "dependencies": {
-    "jsonfile": "^2.2.3"
+    "async": "^1.5.0",
+    "jsonfile": "^2.2.3",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {},
   "scripts": {
