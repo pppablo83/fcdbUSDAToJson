@@ -1,0 +1,27 @@
+{
+  "name": "fcdbUSDAToJson",
+  "version": "0.0.0",
+  "description": "Simple parser from USDA nutrient database in ASCII files to JSON",
+  "main": "main.js",
+  "dependencies": {
+    "jsonfile": "^2.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://pppablo83@github.com/pppablo83/fcdbUSDAToJson.git"
+  },
+  "keywords": [
+    "fcdb",
+    "nutrients-database"
+  ],
+  "author": "Pablo Pérez Ortiz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pppablo83/fcdbUSDAToJson/issues"
+  },
+  "homepage": "https://github.com/pppablo83/fcdbUSDAToJson"
+}
