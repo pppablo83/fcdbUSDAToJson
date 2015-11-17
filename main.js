@@ -23,11 +23,10 @@ console.log('Files to be created in: ' + outputDir)
 
 async.series([
     function (callback) {
-        try {
-            parser.foodDescription('./sr28asc/FOOD_DES.txt', outputDir, callback)
-        } catch (e) {
-            callback(e, null)
-        }
+        parser.foodDescription('./sr28asc/FOOD_DES.txt', outputDir, callback)
+    },
+    function (callback) {
+        parser.foodGroupDescription(outputDir, './sr28asc/FD_GROUP.txt', callback)
     },
     function (callback) {
         //TODO find appropiate mention and move to README.md
@@ -36,7 +35,7 @@ async.series([
     }
 ], function (err, results) {
     if (err) {
-        console.error('An error producing the output files has happened: ' + e)
+        console.error('An error producing the output files has happened: ' + err)
         process.exit(1)
     } else {
         console.log('Finished process successfully')
