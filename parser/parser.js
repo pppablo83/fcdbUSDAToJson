@@ -12,8 +12,8 @@ var NUTRIENT_DATABASE_VERSION = '28'
 var NUTRIENT_DATABASE_DOWNLOAD_URL = 'http://www.ars.usda.gov/Services/docs.htm?docid=25700'
 
 module.exports = {
-    foodDescription: function (fileToRead, outputDir, callback) {
-        console.log('Starting Step 1...')
+    foodDescription: function (fileToRead, outputDir, step, callback) {
+        console.log('Starting Step ' + step + '...')
         console.log('Fields in food description module: NDB_No, FdGrp_Cd,' +
             'Long_Desc, Shrt_Desc, ComName, ManufacName, Survey, Ref_desc, Refuse,' +
             'SciName, N_Factor, Pro_Factor, Fat_Factor, CHO_Factor')
@@ -55,7 +55,7 @@ module.exports = {
                     callbacks--
                 }
                 if (callbacks < 1) {
-                    console.log('Step 1 completed.')
+                    console.log('Step ' + step + ' completed.')
                     return callback()
                 }
             })
@@ -70,10 +70,10 @@ module.exports = {
     footNote: function () {
 
     },
-    foodGroupDescription: function (directoryToRead, fileFoodGroupDescription, callback) {
+    foodGroupDescription: function (fileFoodGroupDescription, directoryToRead, step, callback) {
+        console.log('Starting Step ' + step + '...')
 
         //Putting in memory an array of the food description, key the code
-        console.log('Starting Step 2...')
         var rl = require('readline').createInterface({
             input: require('fs').createReadStream(fileFoodGroupDescription),
             terminal: false
@@ -103,25 +103,55 @@ module.exports = {
                                 callbacks--
                             }
                             if (callbacks < 1) {
-                                console.log('Step 2 completed.')
+                                console.log('Step ' + step + ' completed.')
                                 return callback()
                             }
                         })
-                    }, function(err) {
-                        if(err) {
+                    }, function (err) {
+                        if (err) {
                             callback(err)
                         }
                     })
                 }
-
-
             })
-
         })
 
 
     },
-    langualFactor: function () {
+    langualFactor: function (fileToRead, directoryToRead, step, callback) {
+        console.log('Starting Step ' + step + '...')
+
+        var rl = require('readline').createInterface({
+            input: require('fs').createReadStream(fileToRead),
+            terminal: false
+        });
+
+        var langualFactor = {}
+        var previous = null
+
+        rl.on('line', function (line) {
+            var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
+            if (fields[0] !== previous) {
+                if (previous !== null) {
+                    var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
+                    obj.langualInfoEnglish = langualFactor[previous.toString()]
+                    jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
+                }
+                langualFactor = {}
+                langualFactor[fields[0].toString()] = [fields[1]]
+                previous = fields[0]
+            } else {
+                langualFactor[fields[0].toString()].push(fields[1])
+            }
+        })
+
+        rl.on('close', function () {
+            var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
+            obj.langualInfoEnglish = langualFactor[previous.toString()]
+            jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
+            console.log('Step ' + step + ' completed.')
+            return callback()
+        })
 
     },
     langualFactorsDescription: function () {

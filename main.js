@@ -13,7 +13,8 @@ if (argv.help) {
     console.log("Usage: node main.js\n" +
         "\t--outputDir=Directory\tPuts the output files in the chosen directory," +
         "otherwise default is: " + DEFAULT_OUTPUT_DIR + "\n" +
-        "\t--help\tShows help on use and exits")
+        "\t--help\tShows help on use and exits" + "\n" +
+        "\t--langualInfo\tAdds langual data to the result")
     process.exit(0);
 }
 
@@ -21,12 +22,23 @@ var outputDir = argv.outputDir ? argv.outputDir : DEFAULT_OUTPUT_DIR;
 mkdirp.sync(outputDir)
 console.log('Files to be created in: ' + outputDir)
 
+var step = 0
 async.series([
     function (callback) {
-        parser.foodDescription('./sr28asc/FOOD_DES.txt', outputDir, callback)
+        step++
+        parser.foodDescription('./sr28asc/FOOD_DES.txt', outputDir, step, callback)
     },
     function (callback) {
-        parser.foodGroupDescription(outputDir, './sr28asc/FD_GROUP.txt', callback)
+        step++
+        parser.foodGroupDescription('./sr28asc/FD_GROUP.txt', outputDir, step, callback)
+    },
+    function (callback) {
+        if (argv.langualInfo) {
+            step++
+            parser.langualFactor('./sr28asc/LANGUAL.txt', outputDir, step, callback)
+        } else {
+            return callback()
+        }
     },
     function (callback) {
         //TODO find appropiate mention and move to README.md
