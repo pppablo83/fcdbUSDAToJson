@@ -40,11 +40,13 @@ module.exports = {
             var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
             var obj = {
                 ndbNo: fields[0],
-                foodGroupEnglish: fields[1],
-                nomenclatureEnglish: {
-                    short: fields[2],
-                    long: fields[3],
-                    otherCommonNames: fields[4]
+                nomenclature: {
+                    english: {
+                        short: fields[2],
+                        long: fields[3],
+                        otherCommonNames: fields[4],
+                        foodGroup: fields[1]
+                    }
                 },
                 manufacturerName: fields[5],
                 survey: fields[6],
@@ -103,20 +105,23 @@ module.exports = {
                     callback(err)
                 } else {
                     async.each(files, function (file, callbackInternal) {
-                        callbacks++
-                        jsonFile.readFile(directoryToRead + '/' + file, function (err, obj) {
-                            if (err) {
-                                return callbackInternal(err)
-                            } else {
-                                obj.foodGroupEnglish = foodDescriptionObject[obj.foodGroupEnglish.toString()]
-                                jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
-                                callbacks--
-                            }
-                            if (callbacks < 1) {
-                                console.log('Step ' + step + ' completed.')
-                                return callback()
-                            }
-                        })
+                        if(fs.statSync(directoryToRead + '/' + file).isFile()) {
+                            callbacks++
+                            jsonFile.readFile(directoryToRead + '/' + file, function (err, obj) {
+                                if (err) {
+                                    return callbackInternal(err)
+                                } else {
+                                    obj.nomenclature.english.foodGroup =
+                                        foodDescriptionObject[obj.nomenclature.english.foodGroup.toString()]
+                                    jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
+                                    callbacks--
+                                }
+                                if (callbacks < 1) {
+                                    console.log('Step ' + step + ' completed.')
+                                    return callback()
+                                }
+                            })
+                        }
                     }, function (err) {
                         if (err) {
                             return callback(err)
@@ -205,55 +210,69 @@ module.exports = {
             var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
             var obj = {
                 ndbNo: fields[0],
-                shrtDesc: fields[1],
-                water: {value: fields[2], unit: units.gramsPer100g},
-                energKcal: {value: fields[3], unit: units.Kcal_Per100g},
-                protein: {value: fields[4], unit: units.gramsPer100g},
-                lipidTot: {value: fields[5], unit: units.gramsPer100g},
-                ash: {value: fields[6], unit: units.gramsPer100g},
-                carbohydrt: {value: fields[7], unit: units.gramsPer100g},
-                fiberTD: {value: fields[8], unit: units.gramsPer100g},
-                sugarTot: {value: fields[9], unit: units.gramsPer100g},
-                calcium: {value: fields[10], unit: units.milligramsPer100g},
-                iron: {value: fields[11], unit: units.milligramsPer100g},
-                magnesium: {value: fields[12], unit: units.milligramsPer100g},
-                phosphorus: {value: fields[13], unit: units.milligramsPer100g},
-                potassium: {value: fields[14], unit: units.milligramsPer100g},
-                sodium: {value: fields[15], unit: units.milligramsPer100g},
-                zinc: {value: fields[16], unit: units.milligramsPer100g},
-                copper: {value: fields[17], unit: units.milligramsPer100g},
-                manganese: {value: fields[18], unit: units.milligramsPer100g},
-                selenium: {value: fields[19], unit: units.microgramsPer100g},
-                vitC: {value: fields[20], unit: units.milligramsPer100g},
-                thiamin: {value: fields[21], unit: units.milligramsPer100g},
-                riboflavin: {value: fields[22], unit: units.milligramsPer100g},
-                niacin: {value: fields[23], unit: units.milligramsPer100g},
-                pantoAcid: {value: fields[24], unit: units.milligramsPer100g},
-                vitB6: {value: fields[25], unit: units.milligramsPer100g},
-                folateTot: {value: fields[26], unit: units.microgramsPer100g},
-                folicAcid: {value: fields[27], unit: units.microgramsPer100g},
-                foodFolate: {value: fields[28], unit: units.microgramsPer100g},
-                folateDFE: {value: fields[29], unit: units.microgramsPer100g},
-                cholineTot: {value: fields[30], unit: units.milligramsPer100g},
-                vitB12: {value: fields[31], unit: units.microgramsPer100g},
-                vitA_IU: {value: fields[32], unit: units.IU_Per100g},
-                vitA_RAE: {value: fields[33], unit: units.microgramsPer100g},
-                retinol: {value: fields[34], unit: units.microgramsPer100g},
-                alphaCarot: {value: fields[35], unit: units.microgramsPer100g},
-                betaCarot: {value: fields[36], unit: units.microgramsPer100g},
-                betaCrypt: {value: fields[37], unit: units.microgramsPer100g},
-                lycopene: {value: fields[38], unit: units.microgramsPer100g},
-                lutZEA: {value: fields[39], unit: units.microgramsPer100g},
-                vitE: {value: fields[40], unit: units.milligramsPer100g},
-                vitD_mcg: {value: fields[41], unit: units.microgramsPer100g},
-                vitD_IU: {value: fields[42], unit: units.IU_Per100g},
-                vitK: {value: fields[43], unit: units.microgramsPer100g},
-                faSat: {value: fields[44], unit: units.gramsPer100g},
-                faMono: {value: fields[45], unit: units.gramsPer100g},
-                faPoly: {value: fields[46], unit: units.gramsPer100g},
-                cholesttrl: {value: fields[47], unit: units.milligramsPer100g},
-                gmWt1: {value: fields[48], desc: fields[49]},
-                gmWt2: {value: fields[50], desc: fields[51]},
+                nomenclature: {
+                    english: {
+                        shrtDesc: fields[1]
+                    }
+                },
+                proximates: {
+                    water: {value: fields[2], unit: units.gramsPer100g, desc: 'Water'},
+                    energKcal: {value: fields[3], unit: units.Kcal_Per100g, desc: 'Energy'},
+                    protein: {value: fields[4], unit: units.gramsPer100g, desc: 'Protein'},
+                    lipidTot: {value: fields[5], unit: units.gramsPer100g, desc: 'Total lipid (fat)'},
+                    ash: {value: fields[6], unit: units.gramsPer100g, desc: 'Ash'},
+                    carbohydrt: {value: fields[7], unit: units.gramsPer100g, desc: 'Carbohydrate, by difference'},
+                    fiberTD: {value: fields[8], unit: units.gramsPer100g, desc: 'Fiber, total dietary'},
+                    sugarTot: {value: fields[9], unit: units.gramsPer100g, desc: 'Sugars, total'}
+                },
+                minerals: {
+                    calcium: {value: fields[10], unit: units.milligramsPer100g, desc: 'Calcium, Ca'},
+                    iron: {value: fields[11], unit: units.milligramsPer100g, desc: 'Iron, Fe'},
+                    magnesium: {value: fields[12], unit: units.milligramsPer100g, desc: 'Magnesium, Mg'},
+                    phosphorus: {value: fields[13], unit: units.milligramsPer100g, desc: 'Phosphorus, P'},
+                    potassium: {value: fields[14], unit: units.milligramsPer100g, desc: 'Potassium, K'},
+                    sodium: {value: fields[15], unit: units.milligramsPer100g, desc: 'Sodium, Na'},
+                    zinc: {value: fields[16], unit: units.milligramsPer100g, desc: 'Zinc, Zn'},
+                    copper: {value: fields[17], unit: units.milligramsPer100g, desc: 'Copper, Cu'},
+                    manganese: {value: fields[18], unit: units.milligramsPer100g, desc: 'Manganese, Mn'},
+                    selenium: {value: fields[19], unit: units.microgramsPer100g, desc: 'Selenium, Se'}
+                },
+                vitamins: {
+                    vitC: {value: fields[20], unit: units.milligramsPer100g, desc: 'Vitamin C, total ascorbic acid'},
+                    thiamin: {value: fields[21], unit: units.milligramsPer100g, desc: 'Thiamin'},
+                    riboflavin: {value: fields[22], unit: units.milligramsPer100g, desc: 'Riboflavin'},
+                    niacin: {value: fields[23], unit: units.milligramsPer100g, desc: 'Niacin'},
+                    pantoAcid: {value: fields[24], unit: units.milligramsPer100g, desc: 'Pantothenic acid'},
+                    vitB6: {value: fields[25], unit: units.milligramsPer100g, desc: 'Vitamin B-6'},
+                    folateTot: {value: fields[26], unit: units.microgramsPer100g, desc: 'Folate, total'},
+                    folicAcid: {value: fields[27], unit: units.microgramsPer100g, desc: 'Folic acid'},
+                    foodFolate: {value: fields[28], unit: units.microgramsPer100g, desc: 'Folate, food'},
+                    folateDFE: {value: fields[29], unit: units.microgramsPer100g, desc: 'Folate, DFE'},
+                    cholineTot: {value: fields[30], unit: units.milligramsPer100g, desc: 'Choline, total'},
+                    vitB12: {value: fields[31], unit: units.microgramsPer100g, desc: 'Vitamin B-12'},
+                    vitA_IU: {value: fields[32], unit: units.IU_Per100g, desc: 'Vitamin A, IU'},
+                    vitA_RAE: {value: fields[33], unit: units.microgramsPer100g, desc: 'Vitamin A, RAE'},
+                    retinol: {value: fields[34], unit: units.microgramsPer100g, desc: 'Retinol'},
+                    alphaCarot: {value: fields[35], unit: units.microgramsPer100g, desc: 'Carotene, alpha'},
+                    betaCarot: {value: fields[36], unit: units.microgramsPer100g, desc: 'Carotene, beta'},
+                    betaCrypt: {value: fields[37], unit: units.microgramsPer100g, desc: 'Cryptoxanthin, beta'},
+                    lycopene: {value: fields[38], unit: units.microgramsPer100g, desc: 'Lycopene'},
+                    lutZEA: {value: fields[39], unit: units.microgramsPer100g, desc: 'Lutein + zeaxanthin'},
+                    vitE: {value: fields[40], unit: units.milligramsPer100g, desc: 'Vitamin E (alpha-tocopherol)'},
+                    vitD_mcg: {value: fields[41], unit: units.microgramsPer100g, desc: 'Vitamin D (D2 + D3)'},
+                    vitD_IU: {value: fields[42], unit: units.IU_Per100g, desc: 'Vitamin D'},
+                    vitK: {value: fields[43], unit: units.microgramsPer100g, desc: 'Vitamin K (phylloquinone)'}
+                },
+                lipids: {
+                    faSat: {value: fields[44], unit: units.gramsPer100g, desc: 'Fatty acids, total saturated'},
+                    faMono: {value: fields[45], unit: units.gramsPer100g, desc: 'Fatty acids, total monounsaturated'},
+                    faPoly: {value: fields[46], unit: units.gramsPer100g, desc: 'Fatty acids, total polyunsaturated'},
+                    cholesttrl: {value: fields[47], unit: units.milligramsPer100g, desc: 'Cholesterol'}
+                },
+                weights: {
+                    gmWt1: {value: fields[48], desc: fields[49]},
+                    gmWt2: {value: fields[50], desc: fields[51]}
+                },
                 refusePct: fields[52]
             }
 
@@ -283,7 +302,7 @@ module.exports = {
         rl.on('line', function (line) {
             var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
             var obj = jsonFile.readFileSync(directoryToRead + '/' + fields[0] + '.json')
-            obj.foodGroupEnglish = fields[1]
+            obj.nomenclature.english.foodGroup = fields[1]
             jsonFile.writeFileSync(directoryToRead + '/' + fields[0] + '.json', obj)
         })
 
