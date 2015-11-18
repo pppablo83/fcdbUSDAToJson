@@ -34,6 +34,10 @@ if (argv.abbrv) {
             parser.abbrv('./sr28abbr/ABBREV.txt', outputDir, step, callback)
         },
         function (callback) {
+            step++
+            parser.addFoodCategoryToAbbrv('./sr28asc/FOOD_DES.txt', './sr28asc/FD_GROUP.txt', outputDir, step, callback)
+        },
+        function (callback) {
             //TODO find appropiate mention and move to README.md
             console.log('Special thanks to USDA for all the effort in producing this valuable set of data!')
             callback(null, null)

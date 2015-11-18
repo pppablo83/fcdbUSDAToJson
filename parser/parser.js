@@ -60,7 +60,7 @@ module.exports = {
             var fileName = fields[0] + '.json';
             jsonFile.writeFile(outputDir + '/' + fileName, obj, function (err) {
                 if (err) {
-                    callback(err)
+                    return callback(err)
                 } else {
                     callbacks--
                 }
@@ -106,7 +106,7 @@ module.exports = {
                         callbacks++
                         jsonFile.readFile(directoryToRead + '/' + file, function (err, obj) {
                             if (err) {
-                                callbackInternal(err)
+                                return callbackInternal(err)
                             } else {
                                 obj.foodGroupEnglish = foodDescriptionObject[obj.foodGroupEnglish.toString()]
                                 jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
@@ -119,7 +119,7 @@ module.exports = {
                         })
                     }, function (err) {
                         if (err) {
-                            callback(err)
+                            return callback(err)
                         }
                     })
                 }
@@ -260,7 +260,7 @@ module.exports = {
             var fileName = fields[0] + '.json';
             jsonFile.writeFile(outputDir + '/' + fileName, obj, function (err) {
                 if (err) {
-                    callback(err)
+                    return callback(err)
                 } else {
                     callbacks--
                 }
@@ -270,6 +270,29 @@ module.exports = {
                 }
             })
         });
+    },
+    addFoodCategoryToAbbrv: function (foodDescFile, foodCategoryFile, directoryToRead, step, callback) {
+
+        console.log('Starting Step ' + step + '...')
+
+        var rl = require('readline').createInterface({
+            input: require('fs').createReadStream(foodDescFile),
+            terminal: false
+        });
+
+        rl.on('line', function (line) {
+            var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
+            var obj = jsonFile.readFileSync(directoryToRead + '/' + fields[0] + '.json')
+            obj.foodGroupEnglish = fields[1]
+            jsonFile.writeFileSync(directoryToRead + '/' + fields[0] + '.json', obj)
+        })
+
+        rl.on('close', function () {
+            console.log('Step ' + step + ' completed.')
+            step++
+            module.exports.foodGroupDescription(foodCategoryFile, directoryToRead, step, callback)
+        })
+
     },
     version: NUTRIENT_DATABASE_VERSION,
     url: NUTRIENT_DATABASE_DOWNLOAD_URL
