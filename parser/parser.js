@@ -48,15 +48,17 @@ module.exports = {
                         foodGroup: fields[1]
                     }
                 },
-                manufacturerName: fields[5],
-                survey: fields[6],
-                refDesc: fields[7],
-                refuse: fields[8],
-                scientificName: fields[9],
-                nitrogenFactor: fields[10],
-                proteinFactor: fields[11],
-                fatFactor: fields[12],
-                choFactor: fields[13]
+                general: {
+                    manufacturerName: fields[5],
+                    survey: fields[6],
+                    refDesc: fields[7],
+                    refuse: fields[8],
+                    scientificName: fields[9],
+                    nitrogenFactor: fields[10],
+                    proteinFactor: fields[11],
+                    fatFactor: fields[12],
+                    choFactor: fields[13]
+                }
             }
 
             var fileName = fields[0] + '.json';
@@ -76,7 +78,51 @@ module.exports = {
     nutrientData: function () {
 
     },
-    weight: function () {
+    weight: function (fileToRead, directoryToRead, step, callback) {
+        console.log('Starting Step ' + step + '...')
+
+        //Putting in memory an array of the associated weights, key the code
+        var rl = require('readline').createInterface({
+            input: require('fs').createReadStream(fileToRead),
+            terminal: false
+        });
+
+        var weights = []
+        var previous = null
+
+        rl.on('line', function (line) {
+
+            var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
+            var objectWeight = {
+                amount: fields[2],
+                desc: fields[3],
+                value: fields[4],
+                numDataPts: fields[5],
+                stdDev: fields[6]
+            }
+            if (fields[0] !== previous) {
+                if (previous !== null) {
+                    var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
+                    obj.weights = weights
+                    jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
+                }
+                weights = []
+                weights.push(objectWeight)
+                previous = fields[0]
+            } else {
+                weights.push(objectWeight)
+            }
+
+        })
+
+        rl.on('close', function () {
+            var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
+            obj.weights = weights
+            jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
+            console.log('Step ' + step + ' completed.')
+            return callback()
+        })
+
 
     },
     footNote: function () {
@@ -149,7 +195,7 @@ module.exports = {
             if (fields[0] !== previous) {
                 if (previous !== null) {
                     var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
-                    obj.langualInfoEnglish = langualFactor[previous.toString()]
+                    obj.nomenclature.english.langualInfo = langualFactor[previous.toString()]
                     jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
                 }
                 langualFactor = {}
@@ -162,15 +208,66 @@ module.exports = {
 
         rl.on('close', function () {
             var obj = jsonFile.readFileSync(directoryToRead + '/' + previous + '.json')
-            obj.langualInfoEnglish = langualFactor[previous.toString()]
+            obj.nomenclature.english.langualInfo = langualFactor[previous.toString()]
             jsonFile.writeFileSync(directoryToRead + '/' + previous + '.json', obj)
             console.log('Step ' + step + ' completed.')
             return callback()
         })
 
     },
-    langualFactorsDescription: function () {
+    langualFactorDescription: function (fileToRead, directoryToRead, step, callback) {
+        console.log('Starting Step ' + step + '...')
 
+        var rl = require('readline').createInterface({
+            input: require('fs').createReadStream(fileToRead),
+            terminal: false
+        });
+
+        var langualDescriptionObject = {}
+
+        rl.on('line', function (line) {
+            var fields = line.replace(REGEX_STRING_DELIMITER, '').split(FIELD_DELIMITER)
+            langualDescriptionObject[fields[0].toString()] = fields[1]
+        })
+
+        rl.on('close', function () {
+            var callbacks = 0;
+            fs.readdir(directoryToRead, function (err, files) {
+                if (err) {
+                    callback(err)
+                } else {
+                    async.each(files, function (file, callbackInternal) {
+                        if(fs.statSync(directoryToRead + '/' + file).isFile()) {
+                            callbacks++
+                            jsonFile.readFile(directoryToRead + '/' + file, function (err, obj) {
+                                if (err) {
+                                    return callbackInternal(err)
+                                } else {
+                                    if(typeof obj.nomenclature.english.langualInfo != 'undefined') {
+                                        var arrayWithDesc = []
+
+                                        obj.nomenclature.english.langualInfo.forEach(function (element) {
+                                            arrayWithDesc.push(langualDescriptionObject[element.toString()])
+                                        })
+                                        obj.nomenclature.english.langualInfo = arrayWithDesc
+                                        jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
+                                    }
+                                    callbacks--
+                                }
+                                if (callbacks < 1) {
+                                    console.log('Step ' + step + ' completed.')
+                                    return callback()
+                                }
+                            })
+                        }
+                    }, function (err) {
+                        if (err) {
+                            return callback(err)
+                        }
+                    })
+                }
+            })
+        })
     },
     nutrientDefinition: function () {
 
@@ -269,10 +366,10 @@ module.exports = {
                     faPoly: {value: fields[46], unit: units.gramsPer100g, desc: 'Fatty acids, total polyunsaturated'},
                     cholesttrl: {value: fields[47], unit: units.milligramsPer100g, desc: 'Cholesterol'}
                 },
-                weights: {
-                    gmWt1: {value: fields[48], desc: fields[49]},
-                    gmWt2: {value: fields[50], desc: fields[51]}
-                },
+                weights: [
+                    {value: fields[48], desc: fields[49]},
+                    {value: fields[50], desc: fields[51]}
+                ],
                 refusePct: fields[52]
             }
 

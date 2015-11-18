@@ -14,8 +14,11 @@ if (argv.help) {
         "\t--outputDir=Directory\tPuts the output files in the chosen directory," +
         "otherwise default is: " + DEFAULT_OUTPUT_DIR + "\n" +
         "\t--help\tShows help on use and exits" + "\n" +
-        "\t--langualInfo\tAdds langual data to the result" + "\n" +
-        "\t--abbrv\tParsing only the abbrev version, in case it is called, files will be produced in an " +
+        "\t--langualInfo\tAdds langual data to the result. It works also with the abbreviated form" + "\n" +
+        "\t--weights\tBy default, in full format, weights are added, adding this paramter with --abbrv " +
+        "will add the info from the weights file to the abbreviated version, replacing the wights already" +
+        "included in such version" +
+        "\t--abbrv\tParsing only the abbreviated version, in case it is called, files will be produced in an " +
         "abbrv subfolder of the output dir")
     process.exit(0);
 }
@@ -36,6 +39,30 @@ if (argv.abbrv) {
         function (callback) {
             step++
             parser.addFoodCategoryToAbbrv('./sr28asc/FOOD_DES.txt', './sr28asc/FD_GROUP.txt', outputDir, step, callback)
+        },
+        function (callback) {
+            if (argv.langualInfo) {
+                step = step + 2 //2 internal steps in previous step
+                parser.langualFactor('./sr28asc/LANGUAL.txt', outputDir, step, callback)
+            } else {
+                return callback()
+            }
+        },
+        function (callback) {
+            if (argv.langualInfo) {
+                step++
+                parser.langualFactorDescription('./sr28asc/LANGDESC.txt', outputDir, step, callback)
+            } else {
+                return callback()
+            }
+        },
+        function (callback) {
+            if (argv.weights) {
+                step++
+                parser.weight('./sr28asc/WEIGHT.txt', outputDir, step, callback)
+            } else {
+                return callback()
+            }
         },
         function (callback) {
             //TODO find appropiate mention and move to README.md
@@ -68,6 +95,18 @@ if (argv.abbrv) {
             } else {
                 return callback()
             }
+        },
+        function (callback) {
+            if (argv.langualInfo) {
+                step++
+                parser.langualFactorDescription('./sr28asc/LANGDESC.txt', outputDir, step, callback)
+            } else {
+                return callback()
+            }
+        },
+        function (callback) {
+            step++
+            parser.weight('./sr28asc/WEIGHT.txt', outputDir, step, callback)
         },
         function (callback) {
             //TODO find appropiate mention and move to README.md
