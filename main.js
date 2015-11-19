@@ -17,7 +17,7 @@ if (argv.help) {
         "\t--langualInfo\tAdds langual data to the result. It works also with the abbreviated form" + "\n" +
         "\t--weights\tBy default, in full format, weights are added, adding this paramter with --abbrv " +
         "will add the info from the weights file to the abbreviated version, replacing the wights already" +
-        "included in such version" +
+        "included in such version\n" +
         "\t--abbrv\tParsing only the abbreviated version, in case it is called, files will be produced in an " +
         "abbrv subfolder of the output dir")
     process.exit(0);
@@ -39,6 +39,10 @@ if (argv.abbrv) {
         function (callback) {
             step++
             parser.addFoodCategoryToAbbrv('./sr28asc/FOOD_DES.txt', './sr28asc/FD_GROUP.txt', outputDir, step, callback)
+        },
+        function (callback) {
+            step++
+            parser.foodGroupDescription('./sr28asc/FD_GROUP.txt', outputDir, step, callback)
         },
         function (callback) {
             if (argv.langualInfo) {
@@ -123,7 +127,3 @@ if (argv.abbrv) {
         }
     })
 }
-
-
-
-

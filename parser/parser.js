@@ -1,5 +1,9 @@
+var realFs = require('fs')
+var gracefulFs = require('graceful-fs')
+gracefulFs.gracefulify(realFs)
 var jsonFile = require('jsonfile')
 var async = require('async')
+var fs = require('graceful-fs')
 var fs = require('fs')
 var util = require('util');
 
@@ -159,13 +163,19 @@ module.exports = {
                                 } else {
                                     obj.nomenclature.english.foodGroup =
                                         foodDescriptionObject[obj.nomenclature.english.foodGroup.toString()]
-                                    jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
-                                    callbacks--
+                                    jsonFile.writeFile(directoryToRead + '/' + file, obj, function(errWrite) {
+                                      if(!errWrite) {
+                                        callbacks--
+                                        if (callbacks < 1) {
+                                            console.log('Step ' + step + ' completed.')
+                                            return callback()
+                                        }
+                                      } else {
+                                        return callback(err)
+                                      }
+                                    })
                                 }
-                                if (callbacks < 1) {
-                                    console.log('Step ' + step + ' completed.')
-                                    return callback()
-                                }
+
                             })
                         }
                     }, function (err) {
@@ -405,8 +415,9 @@ module.exports = {
 
         rl.on('close', function () {
             console.log('Step ' + step + ' completed.')
-            step++
-            module.exports.foodGroupDescription(foodCategoryFile, directoryToRead, step, callback)
+            return callback()
+            //step++
+            //module.exports.foodGroupDescription(foodCategoryFile, directoryToRead, step, callback)
         })
 
     },
