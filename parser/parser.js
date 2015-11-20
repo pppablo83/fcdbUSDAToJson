@@ -255,18 +255,22 @@ module.exports = {
                                 } else {
                                     if(typeof obj.nomenclature.english.langualInfo != 'undefined') {
                                         var arrayWithDesc = []
-
                                         obj.nomenclature.english.langualInfo.forEach(function (element) {
                                             arrayWithDesc.push(langualDescriptionObject[element.toString()])
                                         })
                                         obj.nomenclature.english.langualInfo = arrayWithDesc
-                                        jsonFile.writeFileSync(directoryToRead + '/' + file, obj)
+                                        jsonFile.writeFile(directoryToRead + '/' + file, obj, function (err2) {
+                                            if(err) {
+                                                return callback(err2)
+                                            } else {
+                                                callbacks--
+                                                if (callbacks < 1) {
+                                                    console.log('Step ' + step + ' completed.')
+                                                    return callback()
+                                                }
+                                            }
+                                        })
                                     }
-                                    callbacks--
-                                }
-                                if (callbacks < 1) {
-                                    console.log('Step ' + step + ' completed.')
-                                    return callback()
                                 }
                             })
                         }
@@ -416,10 +420,7 @@ module.exports = {
         rl.on('close', function () {
             console.log('Step ' + step + ' completed.')
             return callback()
-            //step++
-            //module.exports.foodGroupDescription(foodCategoryFile, directoryToRead, step, callback)
         })
-
     },
     version: NUTRIENT_DATABASE_VERSION,
     url: NUTRIENT_DATABASE_DOWNLOAD_URL

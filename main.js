@@ -46,7 +46,7 @@ if (argv.abbrv) {
         },
         function (callback) {
             if (argv.langualInfo) {
-                step = step + 2 //2 internal steps in previous step
+                step++ //2 internal steps in previous step
                 parser.langualFactor('./sr28asc/LANGUAL.txt', outputDir, step, callback)
             } else {
                 return callback()
